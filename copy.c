@@ -70,30 +70,33 @@ void* copy(void* args) {
 }
 
 
-int thread_create(const char* sfile, const char* dfile, int blocksize, int thread_num) {
+pthread_t* thread_create(const char* sfile, const char* dfile, int blocksize, int thread_num) {
 	//printf("thread_create()\n");
 
-    pthread_t tid[thread_num];
+	pthread_t* tid = (pthread_t*)malloc(sizeof(pthread_t) * thread_num);
 	/* 创建线程 */
-	int flag;
+	int i;
 
-	for (flag = 0; flag < thread_num; flag++) {
+	for (i = 0; i < thread_num; i++) {
 		Args* args = (Args*)malloc(sizeof(Args));
 		args->sfile = sfile;
 		args->dfile = dfile;
 		args->blocksize = blocksize;
-		args->pos = flag * blocksize;
+		args->pos = i * blocksize;
 		//printf("Thread %d: \n", flag);
 //printf("args: \n\tsfile: %s\n\tdfile: %s\n\tblocksize: %d\n\tpos: %d\n", args->sfile, args->dfile, args->blocksize, args->pos);
-		pthread_create(&tid[flag], NULL, copy, (void*)args);
+		pthread_create(&tid[i], NULL, copy, (void*)args);
 	}
-	for (flag = 0; flag < thread_num; flag++) {
 
-		pthread_join(tid[flag], NULL);
-	}
-    return 0;
+    return tid;
 }
 
+int thread_join(pthread_t* tid, int thread_num) {
+	for (int i = 0; i < thread_num; i++) {
+		pthread_join(tid[i], NULL);
+	}
+	return 0;
+}
 
 int main(int argc, char** argv) {
 
@@ -113,8 +116,12 @@ int main(int argc, char** argv) {
 	blocksize = file_block(argv[1], thread_num);
 	//printf("block size = %d\n", blocksize);
 
-	thread_create(argv[1], argv[2], blocksize, thread_num);
+	pthread_t* tid = thread_create(argv[1], argv[2], blocksize, thread_num);
 
+	// for (int i = 0; i < thread_num; i++) {
+	// 	pthread_join(tid[i], NULL);
+	// }
+	thread_join(tid, thread_num);
 	
 	printf("ok\n");
 	return 0;
