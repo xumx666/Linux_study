@@ -1,3 +1,7 @@
-# Linux_pthread
+# Linux_study
 
-Linux下多线程学习使用
+Linux下学习使用
+
+## copy
+
+实现多线程拷贝
